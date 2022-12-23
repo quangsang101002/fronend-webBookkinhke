@@ -2,14 +2,25 @@ import React, { Component } from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
 import "./UserManage.scss";
-import { getAllUsers, createNewUserService } from "../../services/userService";
+import {
+  getAllUsers,
+  createNewUserService,
+  deleteUserService,
+  editUserService,
+} from "../../services/userService";
 import ModalUser from "./ModalUser";
+import { emitter } from "../../utils/emitter";
+import ModalEditUser from "./modalEditUser";
+// import _ from " lodash";
+
 class UserManage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       arrUsers: [],
       isOpenModalUser: false,
+      isOpenModalEditUser: false,
+      userEdit: {},
     };
   }
 
@@ -18,7 +29,6 @@ class UserManage extends Component {
   }
   getAllUserFromReact = async () => {
     let response = await getAllUsers("All");
-    // console.log("reponse", response);
     if (response && response.errCode === 0) {
       this.setState({
         arrUsers: response.users,
@@ -36,6 +46,11 @@ class UserManage extends Component {
       isOpenModalUser: !this.state.isOpenModalUser,
     });
   };
+  toggleUserEditModal = () => {
+    this.setState({
+      isOpenModalEditUser: !this.state.isOpenModalEditUser,
+    });
+  };
   createNewUser = async (data) => {
     try {
       let response = await createNewUserService(data);
@@ -46,6 +61,40 @@ class UserManage extends Component {
         this.setState({
           isOpenModalUser: false,
         });
+        emitter.emit("EVENT_CLEAR_MODAL_DATA");
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  handleDeleteUser = async (userId) => {
+    try {
+      let res = await deleteUserService(userId.id);
+      console.log("res", res);
+      if (res && res.errCode == 0) {
+        await this.getAllUserFromReact();
+      } else {
+        alert(res.message);
+      }
+    } catch (e) {}
+  };
+  handleEditUserUser = (user) => {
+    console.log("check edit user", user);
+    this.setState({
+      isOpenModalEditUser: true,
+      userEdit: user,
+    });
+  };
+  doEditUser = async (data) => {
+    try {
+      let rep = await editUserService(data);
+      if (rep && rep.errCode == 0) {
+        this.setState({
+          isOpenModalEditUser: false,
+        });
+        await this.getAllUserFromReact();
+      } else {
+        alert(rep.errCode);
       }
     } catch (e) {
       console.log(e);
@@ -61,6 +110,14 @@ class UserManage extends Component {
           toggleFromParent={this.toggleUserModal}
           createNewUser={this.createNewUser}
         />
+        {this.state.isOpenModalEditUser && (
+          <ModalEditUser
+            isOpen={this.state.isOpenModalEditUser}
+            toggleFromParent={this.toggleUserEditModal}
+            currentUser={this.state.userEdit}
+            editUser={this.doEditUser}
+          />
+        )}
         <div className="title text-center">Manage users</div>
         <div className="px-1">
           <button
@@ -91,10 +148,16 @@ class UserManage extends Component {
                         <td>{user.lastName}</td>
                         <td>{user.address}</td>
                         <td>
-                          <button className="btn-edit">
+                          <button
+                            className="btn-edit"
+                            onClick={() => this.handleEditUserUser(user)}
+                          >
                             <i className="fas fa-pencil-alt"></i>
                           </button>
-                          <button className="btn-delete">
+                          <button
+                            className="btn-delete"
+                            onClick={() => this.handleDeleteUser(user)}
+                          >
                             <i className="fas fa-trash"></i>
                           </button>
                         </td>
