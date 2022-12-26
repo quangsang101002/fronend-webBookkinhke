@@ -7,8 +7,7 @@
   background-color: $colormain;
   color: $common-text-color;
   height: 40px;
-  position: relative;
-  justify-content: space-between;
+  // position: relative;
   .btn-logout {
     color: $common-text-color;
     line-height: 40px;
@@ -27,25 +26,4 @@
   // position: fixed;
   // background-color: #fff;
   // z-index: 1000;
-}
-.language {
-  display: flex;
-  right: -40%;
-  position: relative;
-  align-items: center;
-  gap: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  .language-vi {
-    &.active {
-      opacity: 1;
-      color: #fff;
-    }
-  }
-  .language-en {
-    &.active {
-      opacity: 1;
-      color: orange;
-    }
-  }
 }
